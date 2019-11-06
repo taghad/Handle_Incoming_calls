@@ -1,7 +1,7 @@
 package server
 
 import (
-	"Handle_Incoming_Calls/database"
+	"../database"
 	"log"
 	"time"
 )

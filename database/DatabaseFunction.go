@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-
+//changing database to mysql : TODO
 func ConnectDB() *sql.DB {
 	db, err0 := sql.Open("sqlite3", "./test.db")
 	if err0 != nil {

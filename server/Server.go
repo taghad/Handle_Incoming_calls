@@ -1,7 +1,7 @@
 package server
 
 import (
-	"Handle_Incoming_Calls/database"
+	"../database"
 	"database/sql"
 	"fmt"
 	"github.com/gorilla/mux"

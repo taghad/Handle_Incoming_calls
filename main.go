@@ -1,7 +1,6 @@
 package main
 
-import "Handle_Incoming_Calls/server"
-
+import "./server"
 func main()  {
 	server.Serve()
 }
