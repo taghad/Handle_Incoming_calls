@@ -2,13 +2,31 @@ package database
 
 import (
 	"database/sql"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/go-sql-driver/mysql"
 	"log"
 )
 
+type manager struct {
+	userName string
+	password string
+}
 
-func ConnectDB() *sql.DB {
-	db, err0 := sql.Open("sqlite3", "./test.db")
+func New (userName string, password string) manager  {
+	return manager{userName:userName,password:password}
+}
+
+//changing database to mysql : TODO
+var db *sql.DB = nil
+func pathConnection() *sql.DB {
+	if db != nil{
+		return db
+	}
+	return ConnectDB("manager","Manager@123456")
+
+}
+
+func ConnectDB(user string, password string) *sql.DB {
+	db, err0 := sql.Open("mysql", user+":"+password+"@tcp(localhost)/callDB")
 	if err0 != nil {
 		log.Print(err0.Error())
 	}
@@ -34,8 +52,8 @@ func createUsersTable(db *sql.DB) {
 	}
 
 }
-func InsertNewUser(userName string, role string) {
-	db, err0 := sql.Open("sqlite3", "./test.db")
+func InsertNewUser(db *sql.DB,userName string, role string) {
+
 	st, err0 := db.Prepare("insert into users (userName,role , state) values (?,?,?)")
 	if err0 != nil {
 		log.Print(err0.Error())
@@ -63,8 +81,8 @@ func UpdateUserState(db *sql.DB,userName string,state string) {
 
 }
 
-func SelectFreeUsers(role string) (userName string) {
-	db, err0 := sql.Open("sqlite3", "./test.db")
+func SelectFreeUsers(db *sql.DB, role string) (userName string) {
+
 	results, err0 := db.Query("select userName from users where state = ? and role = ?","free",role)
 	if err0 != nil {
 		log.Print(err0.Error()) // proper error handling instead of panic in your app
@@ -95,8 +113,7 @@ func createcallsTable(db *sql.DB)  {
 
 }
 
-func InsertNewCall(phoneNumber string)  {
-	db, err0 := sql.Open("sqlite3", "./test.db")
+func InsertNewCall(db *sql.DB,phoneNumber string)  {
 	st, err0 := db.Prepare("insert into calls (phoneNumber) values (?)")
 	if err0 != nil {
 		log.Print(err0.Error())
@@ -111,9 +128,8 @@ func InsertNewCall(phoneNumber string)  {
 
 }
 
-func SelectFirstCall() (phoneNumber string) {
+func SelectFirstCall(db *sql.DB) (phoneNumber string) {
 
-	db, err0 := sql.Open("sqlite3", "./test.db")
 
 	results, err0 := db.Query("select phoneNumber from calls")
 	if err0 != nil {
@@ -131,8 +147,8 @@ func SelectFirstCall() (phoneNumber string) {
 		return ""
 }
 
-func deleteCall(phoneNumber string)  {
-	db, err0 := sql.Open("sqlite3", "./test.db")
+func deleteCall(db *sql.DB,phoneNumber string)  {
+
 
 	st, err0 := db.Prepare("delete from calls where  phoneNumber = ?")
 	if err0 != nil {
