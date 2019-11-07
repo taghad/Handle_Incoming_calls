@@ -1,43 +1,45 @@
 package database
 
+//have some changes after November 7
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 )
 
+
 type manager struct {
 	userName string
 	password string
+	connection *sql.DB
 }
 
-func New (userName string, password string) manager  {
-	return manager{userName:userName,password:password}
-}
+
 
 //changing database to mysql : TODO
-var db *sql.DB = nil
-func pathConnection() *sql.DB {
-	if db != nil{
-		return db
+func (e *manager)pathConnection() *sql.DB {
+	if e.connection != nil{
+		return e.connection
 	}
-	return ConnectDB("manager","Manager@123456")
+	var err0 error
+	e.connection,err0 = e.ConnectDB("manager","Manager@123456")
+	if err0 != nil {
+		log.Print(err0.Error())
+	}
+	return e.connection
 
 }
 
-func ConnectDB(user string, password string) *sql.DB {
+func (e *manager) ConnectDB(user string, password string) (*sql.DB, error) {
 	db, err0 := sql.Open("mysql", user+":"+password+"@tcp(localhost)/callDB")
 	if err0 != nil {
-		log.Print(err0.Error())
+		return nil,err0
 	}
 
 	//create tables
 	createUsersTable(db)
 	createcallsTable(db)
-
-
-	db.Close()
-	return db
+	return db, nil
 }
 
 func createUsersTable(db *sql.DB) {
