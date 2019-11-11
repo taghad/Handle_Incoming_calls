@@ -1,139 +1,148 @@
 package database
 
+//have some changes after November 7
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 )
 
+
 type manager struct {
 	userName string
 	password string
+	connection *sql.DB
 }
 
-func New (userName string, password string) manager  {
-	return manager{userName:userName,password:password}
-}
+
+
+
 
 //changing database to mysql : TODO
-var db *sql.DB = nil
-func pathConnection() *sql.DB {
-	if db != nil{
-		return db
+func (e *manager)pathConnection() (*sql.DB,error) {
+	if e.connection != nil{
+		return e.connection,nil
 	}
-	return ConnectDB("manager","Manager@123456")
+	var err0 error
+	e.connection,err0 = e.ConnectDB("manager","Manager@123456")
+	if err0 != nil {
+		return nil,err0
+	}
+	return e.connection,nil
 
 }
 
-func ConnectDB(user string, password string) *sql.DB {
+func (e *manager) ConnectDB(user string, password string) (*sql.DB, error) {
 	db, err0 := sql.Open("mysql", user+":"+password+"@tcp(localhost)/callDB")
 	if err0 != nil {
-		log.Print(err0.Error())
+		return nil,err0
 	}
 
 	//create tables
 	createUsersTable(db)
 	createcallsTable(db)
-
-
-	db.Close()
-	return db
+	return db, nil
 }
 
-func createUsersTable(db *sql.DB) {
+func createUsersTable(db *sql.DB)error {
 	st, err0:= db.Prepare("CREATE TABLE IF NOT EXISTS users(ID INTEGER PRIMARY KEY AUTOINCREMENT, userName           TEXT      NOT NULL,role TEXT NOT NULL, state TEXT NOT NULL);")
 	//st, err0 := db.Prepare("CREATE TABLE IF NOT EXISTS users(id INTEGER NOT NULL AUTOINCREMENT,userName varchar(255),role varchar(20),state varchar(20),PRIMARY KEY (id))")
 	if err0 != nil {
-		log.Print(err0.Error())
+		return err0
 	}
 	_, err1 := st.Exec()
 	if err1 != nil {
-		log.Print(err1.Error())
+		return err1
 	}
+	return nil
 
 }
-func InsertNewUser(db *sql.DB,userName string, role string) {
+func InsertNewUser(db *sql.DB,userName string, role string)error {
 
 	st, err0 := db.Prepare("insert into users (userName,role , state) values (?,?,?)")
 	if err0 != nil {
-		log.Print(err0.Error())
+		return err0
 	}
 
 	_, err1 := st.Exec(userName, role, "free")
 	if err1 != nil {
-		log.Print(err1.Error())
+		return err1
 	}
 	db.Close()
 
+	return nil
+
 }
 
 
-func UpdateUserState(db *sql.DB,userName string,state string) {
+func UpdateUserState(db *sql.DB,userName string,state string)error {
 
 	st, err0 := db.Prepare("update users SET (state) where (userName) values (?,?)")
 	if err0 != nil {
-		log.Print(err0.Error())
+		return err0
 	}
 	_, err1 := st.Exec(state,userName)
 	if err1 != nil {
-		log.Print(err1.Error())
+		return err1
 	}
-
+	return nil
 }
 
-func SelectFreeUsers(db *sql.DB, role string) (userName string) {
+func SelectFreeUsers(db *sql.DB, role string) (userName string,err error) {
 
 	results, err0 := db.Query("select userName from users where state = ? and role = ?","free",role)
 	if err0 != nil {
-		log.Print(err0.Error()) // proper error handling instead of panic in your app
+		return "",err0// proper error handling instead of panic in your app
 	}
 	hasNext := results.Next()
 	if hasNext == true {
 		results.Scan(&userName)
 		UpdateUserState(db,userName,"busy")
 		db.Close()
-		return userName
+		return userName,nil
 	}
 	db.Close()
-	return ""
+	return "",nil
 
 
 }
 
-func createcallsTable(db *sql.DB)  {
+func createcallsTable(db *sql.DB) error {
 	st, err0:= db.Prepare("CREATE TABLE IF NOT EXISTS calls(ID INTEGER PRIMARY KEY AUTOINCREMENT, phoneNumber           TEXT      NOT NULL);")
 	//st, err0 := db.Prepare("CREATE TABLE IF NOT EXISTS calls(id INTEGER NOT NULL AUTOINCREMENT,phoneNumber varchar(255),PRIMARY KEY (id))")
 	if err0 != nil {
-		log.Print(err0.Error())
+		return err0
 	}
 	_, err1 := st.Exec()
 	if err1 != nil {
-		log.Print(err1.Error())
+		return err1
 	}
+	return nil
 
 }
 
-func InsertNewCall(db *sql.DB,phoneNumber string)  {
+func InsertNewCall(db *sql.DB,phoneNumber string) error {
 	st, err0 := db.Prepare("insert into calls (phoneNumber) values (?)")
 	if err0 != nil {
-		log.Print(err0.Error())
+		return err0
 	}
 
 	_, err1 := st.Exec(phoneNumber)
 	if err1 != nil {
-		log.Print(err1.Error())
+		return err0
 	}
 
 	db.Close()
+	return nil
 
 }
 
-func SelectFirstCall(db *sql.DB) (phoneNumber string) {
+func SelectFirstCall(db *sql.DB) (phoneNumber string,err error) {
 
 
 	results, err0 := db.Query("select phoneNumber from calls")
 	if err0 != nil {
-		log.Print(err0.Error()) // proper error handling instead of panic in your app
+		 return "",err0
 
 	}
 	hasNext := results.Next()
@@ -141,24 +150,25 @@ func SelectFirstCall(db *sql.DB) (phoneNumber string) {
 		results.Scan(&phoneNumber)
 		deleteCall(phoneNumber)
 		db.Close()
-		return phoneNumber
+		return phoneNumber,nil
 	}
 		db.Close()
-		return ""
+		return "",nil
 }
 
-func deleteCall(db *sql.DB,phoneNumber string)  {
+func deleteCall(db *sql.DB,phoneNumber string)error  {
 
 
 	st, err0 := db.Prepare("delete from calls where  phoneNumber = ?")
 	if err0 != nil {
-		log.Print(err0.Error())
+		return err0
 	}
 
 	_, err1 := st.Exec(phoneNumber)
 	if err1 != nil {
-		log.Print(err1.Error())
+		return err1
 	}
+	return nil
 
 }
 

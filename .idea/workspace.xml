@@ -4,6 +4,7 @@
     <list default="true" id="3e5a8248-15eb-47a7-ba31-87fb86c8c494" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database/DatabaseFunction.go" beforeDir="false" afterPath="$PROJECT_DIR$/database/DatabaseFunction.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/Server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server/Server.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
